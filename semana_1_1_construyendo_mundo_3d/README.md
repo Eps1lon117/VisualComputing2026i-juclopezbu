@@ -70,39 +70,78 @@ Incluye snippets del código más importante o enlaces a los archivos completos.
 ### Ejemplo de código Python:
 
 ```python
-import cv2
+!pip install trimesh vedo matplotlib
+!pip -q install trimesh pythreejs ipywidgets==7.7.1
+!pip install trimesh pyglet
+import trimesh
 import numpy as np
+from pythreejs import *
+from IPython.display import display
+import vedo
 
-# Cargar imagen
-image = cv2.imread('input.jpg')
+loaded = trimesh.load("model.obj", force="scene")
 
-# Aplicar filtro
-filtered = cv2.GaussianBlur(image, (5, 5), 0)
+meshes = []
+total_vertices = 0
+total_faces = 0
+total_edges = 0
+
+for geom in loaded.geometry.values():
+    if isinstance(geom, trimesh.Trimesh):
+        meshes.append(geom)
+        total_vertices += len(geom.vertices)
+        total_faces += len(geom.faces)
+        total_edges += len(geom.edges_unique)
+
+print(f"Total Vertices: {total_vertices}")
+print(f"Total Faces: {total_faces}")
+print(f"Total Edges: {total_edges}")
 ```
 
 ### Ejemplo de código Unity (C#):
 
 ```csharp
-void Update() {
-    transform.Rotate(Vector3.up * rotationSpeed * Time.deltaTime);
+using UnityEngine;
+
+public class MeshAnalyzer : MonoBehaviour
+{
+    void Start()
+    {
+        // Buscar MeshFilter primero
+        MeshFilter mf = GetComponentInChildren<MeshFilter>();
+
+        Mesh mesh = null;
+
+        if (mf != null)
+        {
+            mesh = mf.sharedMesh;
+        }
+        else
+        {
+            // Buscar SkinnedMeshRenderer si no hay MeshFilter
+            SkinnedMeshRenderer smr = GetComponentInChildren<SkinnedMeshRenderer>();
+
+            if (smr != null)
+            {
+                mesh = smr.sharedMesh;
+            }
+        }
+
+        if (mesh == null)
+        {
+            Debug.LogError("No mesh found at all");
+            return;
+        }
+
+        Debug.Log("===== MESH INFO =====");
+        Debug.Log("Vertices: " + mesh.vertexCount);
+        Debug.Log("Triangles: " + mesh.triangles.Length / 3);
+        Debug.Log("SubMeshes: " + mesh.subMeshCount);
+    }
 }
+
 ```
 
-### Ejemplo de código Three.js:
-
-```javascript
-import { Canvas } from '@react-three/fiber'
-import { OrbitControls } from '@react-three/drei'
-
-function Box() {
-  return (
-    <mesh>
-      <boxGeometry args={[1, 1, 1]} />
-      <meshStandardMaterial color="orange" />
-    </mesh>
-  )
-}
-```
 
 ---
 
@@ -113,71 +152,39 @@ Lista los prompts utilizados con herramientas de IA generativa durante el desarr
 ### Ejemplos:
 
 ```
-"Crea un script en Python que detecte bordes usando el algoritmo de Canny"
+"Crea un script que ayude con el conteo de aristas, caras, nodos y mallas en C#"
 
-"Explícame cómo implementar flujo óptico con OpenCV"
+"Configura un entorno para la visualización de un objeto 3d usando python y colab"
 
-"Genera un shader básico en GLSL para efecto de ondas"
+"Crea un script que ayude con el conteo de aristas, caras, nodos en python"
 ```
 
-Si no utilizaste IA generativa, indica: "No se utilizaron prompts de IA en este taller."
 
 ---
 
 ## Aprendizajes y dificultades
 
-Reflexión personal sobre el proceso de desarrollo del taller en 2-3 párrafos.
+Para le ralización de este taller el uso de la herramienta de unity fue lo más comodo, ya que solo fue necesario crear un script para el conteo y la herramienta hizo lo demás en cuanto a visualización; mientras que la herramienta de python fue un poco más compleja de usar ya que requirió de usar otras herramientas para la visualización que presentaron errores y que si no se saben manejar de forma correctas puede presentar una dificultad en tareas o proyectos más complejos.
 
 ### Aprendizajes
 
-¿Qué aprendiste o reforzaste con este taller? ¿Qué conceptos técnicos quedaron más claros?
+Aprendí a usar un poco mejor la herramienta, y a visualizar y comprender como se construyen los objetos tri-dimensionales, además de que no todas las herramientas tienen la misma facilidad para usarlas.
 
 ### Dificultades
 
-¿Qué parte fue más compleja o desafiante? ¿Cómo lo resolviste?
+El uso de la herramienta de python para visualizar y contar los atributos del objeto, ya que requería de librerias externas además de una pequeña configuración de un entorno grafico externo para poder visualizar de forma correcta el objeto y sus atributos.
 
 ### Mejoras futuras
 
-¿Qué mejorarías o qué aplicarías en futuros proyectos?
+El uso constante de la herramienta Unity además de aprender a manejar mejor algunas segundas opciones en caso de que no se cuente con el hardware necesario para correr esta herramienta.
 
 ---
 
-## Contribuciones grupales (si aplica)
-
-Si el taller fue realizado en grupo, describe exactamente lo que tú hiciste:
-
-```markdown
-- Programé el detector de características SIFT en Python
-- Implementé la interfaz de usuario en Three.js
-- Generé los GIFs y documentación del README
-- Realicé las pruebas de rendimiento y optimización
-```
-
-Si fue individual, indica: "Taller realizado de forma individual."
-
----
-
-## Estructura del proyecto
-
-```
-semana_XX_Y_nombre_taller/
-├── python/          # Código Python (si aplica)
-├── unity/           # Proyecto Unity (si aplica)
-├── threejs/         # Código Three.js/React (si aplica)
-├── processing/      # Código Processing (si aplica)
-├── media/           # OBLIGATORIO: Imágenes, videos, GIFs
-└── README.md        # Este archivo
-```
-
----
 
 ## Referencias
 
-Lista las fuentes, tutoriales, documentación o papers consultados durante el desarrollo:
-
-- Documentación oficial de OpenCV: https://docs.opencv.org/
-- Tutorial de React Three Fiber: https://docs.pmnd.rs/react-three-fiber/
-- Paper: "SIFT: Scale-Invariant Feature Transform" - David Lowe
+- pokeball by Jose Ramos: [CC-BY] (https://creativecommons.org/licenses/by/3.0/) via Poly Pizza (https://poly.pizza/m/aBDajZAsuFE)
+- Tutorial de unity: [https://docs.pmnd.rs/react-three-fiber/](https://youtu.be/zFe77GJs4EQ?si=--z111qBWezaUoji)
 
 ---
 
