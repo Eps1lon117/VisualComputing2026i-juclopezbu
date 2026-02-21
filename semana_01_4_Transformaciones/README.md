@@ -23,6 +23,12 @@ Para la implementación en Python, se utilizaron las librerías `numpy` para el 
 * **Animación:** Se implementó un bucle que calcula el estado del objeto en cada frame basándose en una variable de tiempo normalizada de $0$ a $1$.
 * **Exportación:** Los frames se renderizaron individualmente y luego se compilaron en un GIF animado, asegurando una visualización fluida de las transformaciones compuestas.
 
+### Unity (C#)
+En Unity se implementó un script que manipula el componente `Transform` del objeto en tiempo real.
+
+* **Rotación:** Se utilizó `transform.Rotate()` multiplicado por `Time.deltaTime` para asegurar que el movimiento sea fluido e independiente de los FPS (frames por segundo).
+* **Escala:** Se aplicó una función sinusoidal `Mathf.Sin(Time.time)` a `transform.localScale`, logrando un efecto de "respiración" o pulsación constante.
+* **Traslación:** Se implementó un cronómetro lógico para disparar una traslación aleatoria en los ejes X o Y cada 2 segundos, utilizando `transform.Translate()` en el espacio global (`Space.World`).
 ---
 
 ## Resultados visuales
@@ -33,6 +39,9 @@ En este resultado se observa el objeto (un cuadrado unitario) realizando una tra
 ![Resultado Transformación](./media/hola_mundo_visual.gif)
 
 *Descripción: El GIF muestra la aplicación simultánea de $T(t)$, $R(t)$ y $S(t)$ sobre un conjunto de puntos 2D usando multiplicación de matrices.*
+
+### Animación de transformación en unity
+![Resultado Transformación](./media/unity_resultado_1.gif)
 
 ---
 
@@ -77,6 +86,15 @@ M = T @ R @ S
 
 # Aplicar a los puntos del objeto (puntos es una matriz de 3xN)
 transformed_points = M @ points
+```
+
+#### Código Relevante Unity:
+```csharp
+// Ejemplo de rotación y escala dinámica
+transform.Rotate(Vector3.up * velocidad * Time.deltaTime);
+float factor = 1f + Mathf.Sin(Time.time);
+transform.localScale = new Vector3(factor, factor, factor);
+
 ```
 ---
 
