@@ -1,6 +1,6 @@
 # Taller - Jerarquías y Transformaciones: El Árbol del Movimiento
 
-## [Tu Nombre Completo]
+## Juan Camilo Lopez Bustos
 ## 2026-02-21
 
 ---
@@ -48,17 +48,133 @@ Se construyó una jerarquía física en el editor de Unity consistente en tres n
 
 ### Fragmento de Jerarquía en React Three Fiber:
 ```jsx
-// Estructura de grupo (Padre) con hijos anidados
-const Scene = () => {
-  const { rotation, position } = useControls({
-    rotation: [0, 0, 0],
-    position: [0, 0, 0]
+/* ---------------- SISTEMA JERÁRQUICO ---------------- */
+function HierarchySystem() {
+  // Tamaños de los planetas
+  const planet2Size = 1.5; // Centro
+  const planet1Size = 1;   // Hijo
+  const planetSize = 0.7;  // Nieto
+
+  // Radios de separación (ajustados para evitar solapamiento)
+  const orbitRadiusChild = 4;      // Órbita de Planet_1 respecto a Planet_2
+  const orbitRadiusGrandchild = 2.5; // Órbita de Planet respecto a Planet_1
+
+  // Controladores para el nodo padre (Planet_2)
+  const { rotY, posX, posZ } = useControls("Padre (Planet_2)", {
+    rotY: { value: 0, min: 0, max: Math.PI * 2, step: 0.01, label: "Rotación Y" },
+    posX: { value: 0, min: -10, max: 10, step: 0.1, label: "Posición X" },
+    posZ: { value: 0, min: -10, max: 10, step: 0.1, label: "Posición Z" },
+  });
+
+  // Controlador para el hijo (Planet_1)
+  const { rotYChild } = useControls("Hijo (Planet_1)", {
+    rotYChild: { value: 0, min: 0, max: Math.PI * 2, step: 0.01, label: "Rotación Y" },
+  });
+
+  // Controlador para el nieto (Planet)
+  const { rotYGrandchild } = useControls("Nieto (Planet)", {
+    rotYGrandchild: { value: 0, min: 0, max: Math.PI * 2, step: 0.01, label: "Rotación Y" },
   });
 
   return (
-    <group rotation={rotation} position={position}>
-      <mesh> <boxGeometry /> </mesh> {/* Padre */}
-      <mesh position={[0, 0, 0]}> <sphereGeometry /> </mesh> {/* Hijo superpuesto */}
+    // Nodo padre: Planet_2
+    <group position={[posX, 0, posZ]} rotation={[0, rotY, 0]}>
+      <Planet path="/models/Planet_2.glb" size={planet2Size} />
+      {/* Órbita visual para Planet_1 */}
+      <Orbit radius={orbitRadiusChild} />
+
+      {/* Nodo hijo: Planet_1 */}
+      <group rotation={[0, rotYChild, 0]}>
+        <group position={[orbitRadiusChild, 0, 0]}>
+          <Planet path="/models/Planet_1.glb" size={planet1Size} />
+          {/* Órbita visual para Planet */}
+          <Orbit radius={orbitRadiusGrandchild} />
+
+          {/* Nodo nieto: Planet */}
+          <group rotation={[0, rotYGrandchild, 0]}>
+            <group position={[orbitRadiusGrandchild, 0, 0]}>
+              <Planet path="/models/Planet.glb" size={planetSize} />
+            </group>
+          </group>
+        </group>
+      </group>
     </group>
   );
 }
+```
+### Fragmento de Jerarquía en unity:
+```csharp
+// Métodos para rotar usando localRotation para respetar la jerarquía
+    void RotatePadre(float value) 
+    { 
+        if(planet2Padre != null) planet2Padre.localRotation = Quaternion.Euler(0, value, 0); 
+    }
+    
+    void RotateHijo(float value) 
+    { 
+        if(planet1Hijo != null) planet1Hijo.localRotation = Quaternion.Euler(0, value, 0); 
+    }
+    
+    void RotateNieto(float value) 
+    { 
+        if(planetNieto != null) planetNieto.localRotation = Quaternion.Euler(0, value, 0); 
+    }
+}
+```
+
+---
+
+## Prompts utilizados
+
+- "Configurar una jerarquía de grupos en React Three Fiber con controles de Leva."
+
+- "¿Cómo leer valores de un slider de UI en Unity para rotar un objeto padre?"
+
+- "Explicación de por qué mis objetos en un grupo de Three.js aparecen en la misma posición (0,0,0)."
+
+
+---
+
+## Aprendizajes y dificultades
+
+
+### Aprendizajes
+
+- Transformaciones Relativas: Comprendí que la posición de un hijo siempre es relativa a su padre. Si el hijo está en (0,0,0) localmente, siempre estará donde esté el padre, sin importar la posición global de este último.
+
+- Grafo de Escena: La importancia de organizar los objetos no solo por estética, sino por lógica de movimiento.
+
+### Dificultades
+
+- Superposición en Three.js: Mi mayor dificultad fue la ubicación espacial. Al crear la jerarquía, no definí desplazamientos (position) distintos para cada malla hija, lo que resultó en que todos los objetos se renderizaran uno sobre otro en el centro del grupo. Aunque la jerarquía funcionaba lógicamente (se movían juntos), la claridad visual se vio afectada.
+
+- Sincronización de UI: En Unity, conectar los eventos del Slider con las funciones del script requirió entender el sistema de eventos de la UI.
+
+### Mejoras futuras
+
+Aprender mejor el uso de trheejs para poder visualizar de forma correcta los objetos.
+---
+
+
+## Referencias
+- Three.js Journey (Bruno Simon). Three.js Groups.
+- React Three Fiber Documentation. 
+- Leva Documentation. Getting Started with Leva. 
+- Unity Scripting Reference. Transform.Rotate. 
+- Planet by Quaternius (https://poly.pizza/m/18Uxrb2dIc)
+- Planet by Liz Reddington [CC-BY] (https://creativecommons.org/licenses/by/3.0/) via Poly Pizza (https://poly.pizza/m/736PuyxX-ON)
+- Planet by Liz Reddington [CC-BY] (https://creativecommons.org/licenses/by/3.0/) via Poly Pizza (https://poly.pizza/m/fmu3junbyry)
+
+---
+
+## Checklist de entrega
+
+- [ ] Carpeta con nombre `semana_XX_Y_nombre_taller`
+- [ ] Código limpio y funcional en carpetas por entorno
+- [ ] GIFs/imágenes incluidos con nombres descriptivos en carpeta `media/`
+- [ ] README completo con todas las secciones requeridas
+- [ ] Mínimo 2 capturas/GIFs por implementación
+- [ ] Commits descriptivos en inglés
+- [ ] Repositorio organizado y público
+
+---
