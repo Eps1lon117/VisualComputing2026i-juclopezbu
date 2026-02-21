@@ -1,7 +1,7 @@
 
 # Taller  - Transformaciones 
 
-## [Juan Camilo Lopez Bustos
+## Juan Camilo Lopez Bustos
 ## 2026-02-21
 
 ---
