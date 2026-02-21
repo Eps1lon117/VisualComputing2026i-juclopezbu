@@ -32,7 +32,7 @@ Se construyó una jerarquía física en el editor de Unity consistente en tres n
 ## Resultados visuales
 
 ### Three.js - Implementación y Controles
-![Resultado Threejs 1](./media/threejs_resultado_1.gif)
+![Resultado Threejs 1](./media/three.js_resultado_1.gif)
 *Descripción: Interfaz de Leva controlando la rotación del grupo. Se observa la superposición de mallas pero la rotación jerárquica funcional.*
 
 ### Unity - Jerarquía en Movimiento
