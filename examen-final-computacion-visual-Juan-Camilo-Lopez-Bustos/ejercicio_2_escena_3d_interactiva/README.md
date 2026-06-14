@@ -1,176 +1,246 @@
-# Taller Robotica Visual Simulacion Mapa 3D
+# Ejercicio 2 — Escena 3D Interactiva: Exploración Marciana
 
 ## Nombre del estudiante
 
-* Brayan Alejandro Muñoz Pérez bmunozp@unal.edu.co
-* Álvaro Andrés Romero Castro alromeroca@unal.edu.co
-* Juan Camilo Lopez Bustos juclopezbu@unal.edu.co
-* Alejandro Ortiz Cortes alortizco@unal.edu.co
+Juan Camilo López Bustos
 
 ## Fecha de entrega
-08 de junio de 2026
+
+`2026-06-14`
+
+---
 
 ## Descripción breve
 
-Este taller consistió en el desarrollo y simulación de un **robot móvil autónomo** capaz de desplazarse de manera inteligente dentro de un entorno tridimensional cerrado con forma de laberinto. El objetivo principal fue explorar e implementar principios fundamentales de **robótica visual y planificación reactiva local** mediante el uso de sensores de proximidad simulados a través de la técnica de *Raycasting* (lanzamiento de rayos).
+Este ejercicio construye una escena 3D interactiva ambientada en la superficie de Marte, implementada con **React Three Fiber** y **@react-three/drei**. El propósito fue explorar la integración de jerarquías de objetos 3D, transformaciones, materiales PBR, iluminación temática, animaciones continuas e interacción del usuario dentro de un entorno coherente y narrativamente consistente.
 
-Para comprobar la versatilidad de los algoritmos de control diseñados, se implementaron dos entornos paralelos con arquitecturas tecnológicas distintas: **Entorno A (Unity 3D)**, utilizando programación orientada a componentes en C#, y **Entorno B (React Three Fiber / Three.js)**, utilizando un enfoque declarativo web y renderizado acelerado por WebGL. En ambos casos, el chasis del agente ejecuta ciclos continuos de percepción-acción para evadir obstáculos dispuestos en zigzag, escapar de encajonamientos complejos y orientarse magnéticamente hacia una meta final.
+La escena incluye un rover autónomo que navega un laberinto marciano usando una máquina de estados con sensores de raycast para evadir obstáculos y alcanzar una baliza meta, un astronauta en órbita alrededor de esa baliza, dos satélites giratorios en altura y un HUD de vista en primera persona (FPV) superpuesto como segundo canvas independiente. El usuario puede controlar la velocidad del rover, la sensibilidad de giro y el alcance de sus sensores en tiempo real mediante paneles de la librería Leva.
+
+El tema elegido corresponde a la categoría **Exploración espacial**, con elementos propios de una misión robótica marciana: superficie rojiza con cráteres y muros de roca, base con balizas de luz naranja, astronauta en traje espacial y satélites de comunicación en órbita baja.
 
 ---
 
 ## Implementaciones
 
-### Unity
-
-La implementación en el Entorno A se realizó sobre el motor Unity utilizando físicas cinemáticas y detección geométrica. El robot detecta el entorno mediante tres líneas de visión concurrentes (`Physics.Raycast`) configuradas en abanico frontal (frente, izquierda a $-45^\circ$ y derecha a $+45^\circ$). Cuando el frente está libre, el algoritmo ejecuta una rutina de atracción hacia el objetivo (*Goal Seeking*), calculando la dirección trigonométrica hacia la meta e interpolando suavemente la rotación del robot. Si el sensor frontal registra un obstáculo por debajo del umbral de seguridad, el robot entra en estado de evasión local, comparando las lecturas laterales para elegir la salida más despejada. Además, se utilizó un componente `LineRenderer` para persistir la posición histórica del chasis y trazar su trayectoria continua en color azul.
-
 ### Three.js / React Three Fiber
 
-La implementación en el Entorno B trasladó la lógica al navegador web mediante React Three Fiber (R3F) y la librería de utilidades `@react-three/drei`. En lugar de recrear múltiples instancias físicas pesadas, se optimizó el bucle de renderizado interactivo dentro del gancho de alta frecuencia `useFrame`. El robot realiza proyecciones matemáticas vectoriales en el plano horizontal $XZ$ utilizando un único objeto de tipo `THREE.Raycaster`. El feedback visual de detección se realiza mutando directamente el color de las mallas que simulan los láseres de los sensores (cambiando instantáneamente a rojo o naranja al intersectar obstáculos) para evitar re-renders y caídas de frames. Se integró la librería `Leva` para proveer un panel de control interactivo en tiempo real y el componente `<Trail>` de Drei para el dibujo automatizado de la estela tridimensional.
+La escena fue construida íntegramente en un único componente `App.jsx` estructurado en 8 módulos funcionales:
+
+1. **`resolveWallCollision`** — función de resolución de colisiones AABB para mantener al rover dentro del laberinto sin atravesar muros.
+2. **`RoverFPVCamera`** — cámara en primera persona montada dentro del grupo del rover; exporta su matrix world a un `ref` compartido para el HUD.
+3. **`MarsRover`** — rover autónomo con máquina de estados (avance libre, evasión frontal, wall-following, anti-stuck), 5 sensores de raycast y feedback visual de láser en tiempo real.
+4. **`OrbitingAstronaut`** — astronauta que orbita la baliza meta con trayectoria sinusoidal, modelado con geometrías primitivas (`capsuleGeometry`, `sphereGeometry`, `boxGeometry`).
+5. **`RotatingSatellite`** — satélite con paneles solares emissivos que rota en dos ejes independientes.
+6. **`MarsEnvironment`** — escenario completo: suelo plano rojizo, muros perimetrales, muros interiores del laberinto, cráter cilíndrico tumbado, rocas dispersas y base de exploración con balizas.
+7. **`GoalBeacon`** — baliza meta con animación flotante sinusoidal y `pointLight` naranja integrada.
+8. **`FPVScene`** — escena espejo ligera para el canvas HUD, que posiciona su cámara usando la matrix world exportada por el rover.
+
+Tecnologías: React 19, `@react-three/fiber`, `@react-three/drei` (OrbitControls, Trail, Stars, useFBO, PerspectiveCamera), `leva`, `three.js`, Vite 8.
 
 ---
 
 ## Resultados visuales
 
-### Unity - Implementación
+### Vista orbital principal
 
-![Resultado Unity 1 (Animación GIF)](./media/unity_resultado_2.gif)
+![Captura 1](./media/captura_1.png)
 
-*Descripción: [Espacio reservado para el GIF de Unity] Animación en la que se aprecia al robot saliendo del bucle de atasco, evaluando esquinas y recorriendo la trayectoria de manera fluida.*
+Vista aérea de la escena marciana completa: el laberinto con sus muros de roca, el rover autónomo con sus sensores de láser activos, el astronauta en órbita y los satélites en altura. El cielo nocturno marciano está poblado con miles de estrellas generadas con el componente `Stars`.
 
-![Resultado Unity 2 (Captura de Pantalla)](./media/unity_resultado_1.png)
+### HUD de primera persona (FPV)
 
-*Descripción: Captura de pantalla de la escena en Unity donde se visualiza la pista completa con los obstáculos de color rosa, la estela azul generada por el LineRenderer y las líneas de depuración de los rayos frontales.*
+![Captura 2](./media/captura_2.png)
 
-### Three.js - Implementación
+Detalle del canvas secundario superpuesto en la esquina inferior derecha, etiquetado como `◉ ROVER CAM — FPV`. Muestra en tiempo real la perspectiva desde el mástil de la cámara del rover, sincronizado fotograma a fotograma con la posición y orientación del vehículo en la escena principal.
 
-![Resultado Three.js 1 (Animación GIF)](./media/three_resultado_2.gif)
+### Demostración animada
 
-*Descripción: [Espacio reservado para el GIF de Three.js] Demostración en el navegador del agente web sorteando el laberinto adaptativo de manera reactiva.*
+![Demo](./media/demo.gif)
 
-![Resultado Three.js 2 (Captura de Pantalla)](./media/three_resultado_1.png)
-
-*Descripción: Captura del lienzo WebGL en el navegador que muestra la geometría tridimensional de la pista, el objeto esférico dorado que representa la meta y el menú flotante de control Leva.*
+GIF demostrativo que muestra: navegación autónoma del rover esquivando los muros del laberinto, órbita continua del astronauta, rotación de los satélites, animación flotante de la baliza meta, sincronización del HUD FPV y uso de los controles Leva para ajustar velocidad y sensores en tiempo real.
 
 ---
 
 ## Código relevante
 
-### Fragmento Crítico en Unity (C#)
+### Máquina de estados del rover (núcleo algorítmico)
 
-A continuación se exponen las líneas más importantes del bucle de decisión del robot en Unity, encargadas de realizar el **Raycasting múltiple** y discriminar entre el estado de evasión adaptativa y la orientación suave hacia la meta:
+```javascript
+// 5 rayos de sensor — frente, ±45°, ±90° lateral
+const fDir = new THREE.Vector3(0, 0, -1).applyQuaternion(q)
+const lDir = new THREE.Vector3(0, 0, -1)
+  .applyAxisAngle(new THREE.Vector3(0,1,0),  Math.PI/4).applyQuaternion(q)
+const rDir = new THREE.Vector3(0, 0, -1)
+  .applyAxisAngle(new THREE.Vector3(0,1,0), -Math.PI/4).applyQuaternion(q)
 
-```csharp
-// --- PERCEPCIÓN: Lanzamiento de rayos en abanico frontal ---
-Vector3 forwardDir = transform.forward;
-Vector3 leftDir = Quaternion.Euler(0, -45, 0) * transform.forward;
-Vector3 rightDir = Quaternion.Euler(0, 45, 0) * transform.forward;
+raycaster.set(roverPos, fDir)
+const hitF = raycaster.intersectObjects(obstacles, true)[0]?.distance < sensorLen
 
-bool hitForward = Physics.Raycast(transform.position, forwardDir, out RaycastHit forwardHit, rayLength, obstacleLayer);
-bool hitLeft = Physics.Raycast(transform.position, leftDir, out RaycastHit leftHit, rayLength, obstacleLayer);
-bool hitRight = Physics.Raycast(transform.position, rightDir, out RaycastHit rightHit, rayLength, obstacleLayer);
-
-// --- TOMA DE DECISIONES Y CONTROL CINEMÁTICO ---
-if (hitForward)
-{
-    // MÁQUINA DE ESTADOS: EVASIÓN DE OBSTÁCULOS
-    // Si el frente está obstruido, analizamos los sensores laterales para decidir el giro óptimo
-    if (hitRight && !hitLeft)        evasionDirection = -1; // Derecha bloqueada -> Girar a la Izquierda
-    else if (hitLeft && !hitRight)   evasionDirection = 1;  // Izquierda bloqueada -> Girar a la Derecha
-    else if (hitLeft && hitRight)
-    {
-        // Caso complejo (Pasillo cerrado/Esquina): Girar hacia donde el obstáculo esté más lejos
-        evasionDirection = (leftHit.distance > rightHit.distance) ? -1 : 1;
-    }
-    
-    // Aplicar velocidad de rotación sobre el eje vertical Y
-    transform.Rotate(Vector3.up * evasionDirection * (rotationSpeed * 50.0f) * Time.deltaTime);
-}
-else
-{
-    // MÁQUINA DE ESTADOS: GOAL SEEKING (ATRACCIÓN A LA META)
-    // El camino frontal está libre; orientamos activamente el rumbo hacia la meta dorada
-    Vector3 directionToGoal = (goal.position - transform.position).normalized;
-    float targetAngle = Mathf.Atan2(directionToGoal.x, directionToGoal.z) * Mathf.Rad2Deg;
-    
-    // Interpolación esférica suave (Slerp) para evitar giros instantáneos o poco naturales
-    Quaternion targetRotation = Quaternion.Euler(0, targetAngle, 0);
-    transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
-
-    // Desplazamiento lineal constante hacia adelante
-    transform.Translate(Vector3.forward * speed * Time.deltaTime);
-}
-
-```
-
-### Fragmento Crítico en Three.js / React Three Fiber (JavaScript)
-Este segmento del código dentro del hook recurrente useFrame ilustra cómo se gestiona de forma óptima el cálculo de distancias de colisión en WebGL y la normalización de la diferencia angular para evitar rotaciones infinitas del chasis:
-
-```JavaScript
-// --- EVALUACIÓN GEOMÉTRICA CON RAYCASTER OPTIMIZADO ---
-// Se configuran las direcciones en el plano horizontal de Three.js (Avance estándar es el eje -Z)
-const fDir = new THREE.Vector3(0, 0, -1).applyQuaternion(robot.quaternion);
-const lDir = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI / 4).applyQuaternion(robot.quaternion);
-const rDir = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI / 4).applyQuaternion(robot.quaternion);
-
-raycaster.set(robotPos, fDir);
-const fHits = raycaster.intersectObjects(obstacles);
-const hitForward = fHits.length > 0 && fHits[0].distance < rayLength;
-
-// ... [Cálculo homólogo para lHits y rHits omitidos por brevedad] ...
-
-if (hitForward) {
-    // CONTROL REACTIVO DE EVASIÓN: Elección lateral dinámica basándose en la proximidad
-    let turnDirection = evasionRef.current;
-    if (hitRight && !hitLeft)        turnDirection = 1;   // Girar a la Izquierda (Y positivo)
-    else if (hitLeft && !hitRight)   turnDirection = -1;  // Girar a la Derecha (Y negativo)
-    else if (hitLeft && hitRight)    turnDirection = lHits[0].distance > rHits[0].distance ? 1 : -1;
-
-    evasionRef.current = turnDirection;
-    robot.rotation.y += turnDirection * rotationSpeed * delta; // Rotación incremental delta
+// Máquina de estados
+if (forceTurnRef.current > 0) {
+  // Giro forzado anti-stuck: rotar en dirección elegida e ignorar sensores
+  forceTurnRef.current -= delta
+  rover.rotation.y += evasionRef.current * rotSpeed * delta
+  rover.translateZ(-speed * 0.4 * delta)
+} else if (hitF) {
+  // Obstáculo al frente: girar hacia el lado más libre
+  let dir = hitR && !hitL ? 1 : hitL && !hitR ? -1 : evasionRef.current
+  rover.rotation.y += dir * rotSpeed * delta
 } else {
-    // PLANIFICACIÓN LOCAL (GOAL SEEKING): Alineación suave con el vector objetivo
-    const toGoalVector = new THREE.Vector3().subVectors(goalPos, robotPos);
-    const targetAngle = Math.atan2(-toGoalVector.x, -toGoalVector.z);
-    
-    // TRUCO MATEMÁTICO ESENCIAL: Normalizar la diferencia de ángulos entre [-PI, PI] 
-    // Esto previene que el robot dé vueltas completas sobre su propio eje innecesariamente
-    let angleDiff = targetAngle - robot.rotation.y;
-    angleDiff = Math.atan2(Math.sin(angleDiff), Math.cos(angleDiff));
-    
-    // Rotar una fracción del ángulo restante amortiguado por el tiempo delta
-    robot.rotation.y += angleDiff * (rotationSpeed * 0.6) * delta;
-    robot.translateZ(-speed * delta); // Avanzar hacia su eje frontal local (-Z)
+  // Camino libre: orientarse hacia la meta
+  const toGoal = new THREE.Vector3()
+    .subVectors(goalPos, roverPos).normalize()
+  const angle = Math.atan2(toGoal.x, toGoal.z)
+  rover.rotation.y = THREE.MathUtils.lerp(rover.rotation.y, angle, 0.03)
+  rover.translateZ(-speed * delta)
 }
 ```
+
+### Exportación de la matrix world para el HUD FPV
+
+```javascript
+// Dentro de RoverFPVCamera (montado en el grupo del rover)
+useFrame(() => {
+  camRef.current.updateMatrixWorld()
+  fpvMatrixRef.current = camRef.current.matrixWorld.clone()
+})
+
+// Dentro de FPVScene (canvas HUD separado)
+useFrame(() => {
+  const m = fpvMatrixRef.current
+  camRef.current.position.setFromMatrixPosition(m)
+  camRef.current.quaternion.setFromRotationMatrix(m)
+})
+```
+
+### Colisión AABB contra muros del laberinto
+
+```javascript
+function resolveWallCollision(pos) {
+  const p = pos.clone()
+  p.x = THREE.MathUtils.clamp(p.x, -BORDER_X + 0.3, BORDER_X - 0.3)
+  p.z = THREE.MathUtils.clamp(p.z,  BORDER_Z_MIN + 0.3, BORDER_Z_MAX - 0.3)
+
+  for (const b of WALL_BOXES) {
+    const inX = p.x > b.minX - ROVER_RADIUS && p.x < b.maxX + ROVER_RADIUS
+    const inZ = p.z > b.minZ - ROVER_RADIUS && p.z < b.maxZ + ROVER_RADIUS
+    if (!inX || !inZ) continue
+    // Empujar por el eje de menor penetración
+    const minD = Math.min(dxMin, dxMax, dzMin, dzMax)
+    if (minD === dxMin) p.x = b.minX - ROVER_RADIUS
+    else if (minD === dzMin) p.z = b.minZ - ROVER_RADIUS
+    // ...
+  }
+  return p
+}
+```
+
+### Astronauta en órbita sinusoidal
+
+```javascript
+useFrame(({ clock }) => {
+  const t = clock.elapsedTime * 0.6
+  const gp = goalRef.current.position
+  astronautRef.current.position.set(
+    gp.x + Math.cos(t) * 3.5,
+    Math.max(ASTRONAUT_Y, gp.y + Math.sin(t * 0.7) * 1.8 + 2.5),
+    gp.z + Math.sin(t) * 3.5
+  )
+  astronautRef.current.rotation.y = -t
+})
+```
+
+---
+
 ## Prompts utilizados
-Durante las iteraciones de diseño de este software autónomo, se formularon los siguientes prompts de ingeniería:
 
-* "Cómo puedo ajustar el script de un robot que busca la meta en Unity ya que solo gira a la derecha y se queda atrapado en una especie de loop al encontrarse con un pasillo en zigzag de paredes planas."
+```
+"Cómo implementar detección de obstáculos con Raycaster en React Three Fiber
+para un rover autónomo que navega un laberinto"
 
-* "Escribe la sección de código reactivo en React Three Fiber para useFrame que tome un vector hacia una meta y oriente un mesh de manera suave utilizando atan2 y translateZ, asegurando que los rayos de visión cambien de color sin causar re-renders en React."
+"Explícame cómo exportar la matrix world de una cámara montada en un objeto
+y usarla para sincronizar una cámara en un canvas separado (HUD)"
+
+"Cómo hacer colisión AABB simple entre un objeto móvil y paredes estáticas
+en Three.js sin usar un motor de física"
+
+"Qué diferencia hay entre makeDefault y una cámara sin makeDefault
+en React Three Fiber cuando se tienen dos Canvas independientes"
+
+"Genera un componente de astronauta en Three.js usando solo geometrías
+primitivas: cápsula para el cuerpo, esfera para el casco"
+```
+
+Las respuestas de IA se usaron como punto de partida; la lógica de anti-stuck, el wall-following y la sincronización de doble canvas fueron ajustados y depurados manualmente.
+
+---
 
 ## Aprendizajes y dificultades
+
 ### Aprendizajes
-- Navegación en Lazo Cerrado: Comprensión de las dinámicas de control basadas en ciclos de percepción-acción continua, donde el agente no planea de forma global, sino que reacciona adaptativamente a su entorno inmediato.
 
-- Tratamiento Angular y Trigonometría: Dominio de las funciones de arcotangente generalizada (Math.atan2) y de los métodos de interpolación como Slerp o amortiguaciones angulares normalizadas para evitar singularidades geométricas u oscilaciones infinitas.
+Este ejercicio profundizó la comprensión de la arquitectura de `useFrame` en React Three Fiber como bucle de renderizado reactivo: al entender que cada llamada a `useFrame` ocurre una vez por fotograma y que los `ref` son la forma correcta de compartir estado mutable entre componentes sin provocar re-renders, la estructura del código se volvió mucho más clara. También fue muy valioso aprender a usar la matrix world de una cámara para "clonar" su perspectiva en un canvas completamente distinto, lo que abre posibilidades para HUDs, minimapas y sistemas de vigilancia en entornos 3D.
 
-- Abstracción Multiplataforma: Capacidad de extrapolar una misma plantilla lógica y matemática desde un motor compilado y cerrado (Unity) hacia un ecosistema web declarativo guiado por estados (React Three Fiber) adaptando los sistemas de coordenadas locales.
+La máquina de estados del rover con comportamiento emergente (evasión + anti-stuck + wall-following) mostró en la práctica cómo comportamientos complejos pueden surgir de reglas locales simples, un principio central en robótica reactiva.
 
 ### Dificultades
-- El Problema del Mínimo Local: Al inicio, el robot poseía un solo sensor lineal y un giro estático por defecto. Esto causaba que al colisionar de frente contra paredes planas quedara atrapado en loops simétricos oscilatorios. La dificultad se resolvió expandiendo la percepción a un abanico de 3 sensores concurrentes y programando una memoria de decisión selectiva basada en la distancia de los flancos.
 
-- Rendimiento e Hilos en WebGL: En Three.js, instanciar repetidamente objetos vectoriales en cada frame saturaba rápidamente el Garbage Collector, provocando saltos visibles en el movimiento. Se solucionó reciclando una única instancia global de Raycaster y manipulando los colores de los sensores directamente a nivel de propiedad de shader nativo.
+El problema más complejo fue la sincronización del HUD FPV entre dos canvas independientes. React Three Fiber crea contextos WebGL separados por canvas, por lo que no es posible compartir objetos Three.js directamente. La solución fue exportar únicamente datos primitivos (la matrix world como `THREE.Matrix4`) a través de un `ref` compartido y reconstruir la posición y orientación de la cámara HUD en cada fotograma a partir de esa matrix. Depurar este mecanismo requirió entender la diferencia entre `position.setFromMatrixPosition` y `quaternion.setFromRotationMatrix`.
+
+Otro desafío fue el comportamiento de atasco del rover en esquinas cóncavas del laberinto, donde los sensores de ±45° no detectaban el muro lateral correctamente. Se resolvió añadiendo dos sensores adicionales a ±90° para detección de wall-following y un temporizador de anti-stuck que fuerza un giro completo cuando el rover no avanza más de 8 cm en 600 ms.
 
 ### Mejoras futuras
-- Campos Potenciales Virtuales: Cambiar la lógica discreta de if-else por fuerzas continuas donde los obstáculos repelan al robot de forma inversamente proporcional a la distancia y la meta lo atraiga.
 
-- Controlador PID Integrado: Reemplazar las velocidades de traslación lineales fijas por un controlador Proporcional-Integral-Derivativo (PID) que desacelere el robot suavemente conforme se estrechan los pasillos o se aproxima a curvas cerradas.
+- Implementar un algoritmo de pathfinding (A* o navegación por grafo de visibilidad) para reemplazar la máquina de estados reactiva, lo que daría al rover trayectorias óptimas en lugar de comportamiento emergente.
+- Añadir interacción por teclado (WASD) para permitir control manual del rover con posibilidad de alternar entre modo autónomo y manual.
+- Incluir efectos de partículas para polvo marciano al frenar o girar, usando el sistema de partículas de Three.js.
+
+---
+
+## Estructura del proyecto
+
+```
+ejercicio_2_escena_3d_interactiva/
+├── trheejs/
+│   ├── src/
+│   │   ├── App.jsx          # Componente principal: escena completa (8 módulos)
+│   │   ├── main.jsx         # Punto de entrada React
+│   │   ├── App.css
+│   │   └── index.css
+│   ├── index.html
+│   ├── package.json
+│   ├── vite.config.js
+│   └── eslint.config.js
+├── media/
+│   ├── captura_1.png        # Vista orbital de la escena
+│   ├── captura_2.png        # Detalle del HUD FPV
+│   └── demo.gif             # Demostración animada completa
+└── README.md
+```
+
+---
 
 ## Referencias
-Documentación de API Física de Unity: Physics.Raycast en Unity
 
-Guía de optimización en bucles de animación WebGL: React Three Fiber Pitfalls and Performance (https://www.google.com/search?q=https://docs.pmnd.rs/react-three-fiber/advanced/pitfalls)
+- Documentación de React Three Fiber: https://docs.pmnd.rs/react-three-fiber/
+- Documentación de @react-three/drei: https://drei.pmnd.rs/
+- Documentación de Leva (controles GUI): https://github.com/pmndrs/leva
+- Three.js — Raycaster: https://threejs.org/docs/#api/en/core/Raycaster
+- Three.js — Matrix4: https://threejs.org/docs/#api/en/math/Matrix4
+- Bruno Simon — Three.js Journey (referencia de materiales PBR y shadows)
 
-Conceptos de cinemática para robots móviles: Siegwart, R. - Introduction to Autonomous Mobile Robots (MIT Press).
+---
+
+## Checklist de entrega
+
+- [x] Carpeta `ejercicio_2_escena_3d_interactiva/`
+- [x] Código fuente en `trheejs/src/`
+- [x] GIFs/imágenes en `media/` con nombres descriptivos
+- [x] README completo con todas las secciones requeridas
+- [x] Más de 2 capturas por implementación
+- [x] Demo GIF mostrando animación, navegación e interacción
+- [x] Jerarquía de objetos 3D implementada
+- [x] Materiales PBR (metalness/roughness) y emissivos
+- [x] Iluminación temática (directional + ambient + hemisphere + pointLight)
+- [x] Interacción del usuario (OrbitControls + paneles Leva)
+- [x] Animaciones de personajes y elementos (rover, astronauta, satélites, baliza)
